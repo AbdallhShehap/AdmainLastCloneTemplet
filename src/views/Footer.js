@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import {
   Button,
   Card,
@@ -15,226 +15,477 @@ import {
   Table,
 } from "reactstrap";
 import Tables from "./Tables";
-import Toastify from 'toastify-js';
-import 'toastify-js/src/toastify.css'; // Import the styles
+import Toastify from "toastify-js";
+import "toastify-js/src/toastify.css"; // Import the styles
 
-import AddSocial from './Component/AddSocial'
-
+import AddSocialFooter from "./Component/AddSocialFooter";
 
 function Footer() {
   const [add, setAdd] = useState([]);
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  const [title1, setTitle1] = useState("");
+  const [title2, setTitle2] = useState("");
+  const [title3, setTitle3] = useState("");
+  const [copyWriteText, setCopyWriteText] = useState("");
+  const [textUnderInput, setTextUnderInput] = useState("");
+
   const [address, setAddress] = useState("");
   const [extraContact, setExtraContact] = useState("");
-  const [social1, setSocial1] = useState("")
-  const [social2, setSocial2] = useState("")
-  const [social3, setSocial3] = useState("")
+  const [social1, setSocial1] = useState("");
+  const [social2, setSocial2] = useState("");
+  const [social3, setSocial3] = useState("");
   const [isUpdateFormVisible, setIsUpdateFormVisible] = useState(false);
   const [del, setDel] = useState([]);
   const [updateFooterId, setUpdateFooterId] = useState("");
 
-
   const [contentFields, setContentFields] = useState([]);
   const [contentFields2, setContentFields2] = useState([]);
+
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [feedback, setFeedback] = useState("");
+
+  const [selectedContent, setSelectedContent] = useState({
+    id: "",
+    name: "",
+    path: "",
+  });
+
+  const [contents, setContents] = useState([]);
+
+  const [selectedContent2, setSelectedContent2] = useState({
+    id: "",
+    name: "",
+    path: "",
+  });
+
+  const [contents2, setContents2] = useState([]);
+
+  const fetchContents = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:1010/footer/detailsfirstsectioncontent"
+      );
+      console.log({ first: response.data });
+      setContents(response.data);
+    } catch (error) {
+      console.error("Error fetching contents:", error);
+    }
+  };
+  const fetchContents2 = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:1010/footer/detailssecoundsecitoncontent"
+      );
+      console.log({ first: response.data });
+      setContents2(response.data);
+    } catch (error) {
+      console.error("Error fetching contents:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchFooterDetails = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:1010/footer/details"
+        );
+        if (response.data && response.data.length > 0) {
+          const footerData = response.data[0];
+          setTitle1(footerData.footerFirstTitle); // Assuming this represents the phone
+          setTitle2(footerData.footerSecoundTitle); // Assuming this represents the email
+          setTitle3(footerData.footerThirdTitle); // Assuming this represents the address
+          setCopyWriteText(footerData.copyWriteText);
+          setTextUnderInput(footerData.textUnderInput);
+          // Add other fields if needed
+        }
+      } catch (error) {
+        console.error("Error fetching footer details:", error);
+        // Handle error appropriately
+      }
+    };
+
+    fetchFooterDetails();
+    fetchContents();
+    fetchContents2();
+  }, []);
+
+  const UpdateContent = async () => {
+    if (!selectedContent.id) {
+      console.error("No content selected for updating");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:1010/footer/detailsfirstsectioncontent/${selectedContent.id}`,
+        {
+          name: selectedContent.name,
+          path: selectedContent.path,
+        }
+      );
+      console.log("Content updated successfully:", response.data);
+
+      // Update the contents state with the updated content details
+      const updatedContents = contents.map((content) =>
+        content.id === selectedContent.id
+          ? {
+              ...content,
+              name: selectedContent.name,
+              path: selectedContent.path,
+            }
+          : content
+      );
+      setContents(updatedContents);
+
+      Toastify({
+        text: "updated completely",
+        duration: 3000, // Duration in milliseconds
+        gravity: "top", // 'top' or 'bottom'
+        position: "right", // 'left', 'center', 'right'
+        backgroundColor: "#5EC693",
+      }).showToast();
+    } catch (error) {
+      console.error("Error updating content:", error);
+    }
+  };
+
+  const DeleteContent = async () => {
+    if (!selectedContent.id) {
+      console.error("No content selected for deletion");
+      return;
+    }
+
+    try {
+      const response = await axios.delete(
+        `http://localhost:1010/footer/detailsfirstsectioncontent/${selectedContent.id}`
+      );
+      console.log("Content deleted successfully:", response.data);
+
+      // Remove the deleted content from the contents state
+      setContents((prevContents) =>
+        prevContents.filter((content) => content.id !== selectedContent.id)
+      );
+
+      // Reset the selected content
+      setSelectedContent({ id: "", name: "" });
+
+      Toastify({
+        text: "Deleted completely",
+        duration: 3000, // Duration in milliseconds
+        gravity: "top", // 'top' or 'bottom'
+        position: "right", // 'left', 'center', 'right'
+        backgroundColor: "#ce5151",
+      }).showToast();
+    } catch (error) {
+      console.error("Error deleting content:", error);
+    }
+  };
+
+  const UpdateContent2 = async () => {
+    if (!selectedContent2.id) {
+      console.error("No content selected for updating");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:1010/footer/detailssecoundsecitoncontent/${selectedContent2.id}`,
+        {
+          name: selectedContent2.name,
+          path: selectedContent2.path,
+        }
+      );
+      console.log("Content updated successfully:", response.data);
+
+      // Update the contents state with the updated content details
+      const updatedContents = contents2.map((content) =>
+        content.id === selectedContent2.id
+          ? {
+              ...content,
+              name: selectedContent2.name,
+              path: selectedContent2.path,
+            }
+          : content
+      );
+      setContents(updatedContents);
+
+      Toastify({
+        text: "updated completely",
+        duration: 3000, // Duration in milliseconds
+        gravity: "top", // 'top' or 'bottom'
+        position: "right", // 'left', 'center', 'right'
+        backgroundColor: "#5EC693",
+      }).showToast();
+    } catch (error) {
+      console.error("Error updating content:", error);
+    }
+  };
+
+  const DeleteContent2 = async () => {
+    if (!selectedContent2.id) {
+      console.error("No content selected for deletion");
+      return;
+    }
+
+    try {
+      const response = await axios.delete(
+        `http://localhost:1010/footer/detailssecoundsecitoncontent/${selectedContent2.id}`
+      );
+      console.log("Content deleted successfully:", response.data);
+
+      // Remove the deleted content from the contents state
+      setContents2((prevContents) =>
+        prevContents.filter((content) => content.id !== selectedContent2.id)
+      );
+
+      // Reset the selected content
+      setSelectedContent2({ id: "", name: "" });
+
+      Toastify({
+        text: "Deleted completely",
+        duration: 3000, // Duration in milliseconds
+        gravity: "top", // 'top' or 'bottom'
+        position: "right", // 'left', 'center', 'right'
+        backgroundColor: "#ce5151",
+      }).showToast();
+    } catch (error) {
+      console.error("Error deleting content:", error);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    const allowedFileTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/bmp",
+      "image/tiff",
+      "image/svg+xml",
+      "image/x-icon",
+      "image/heic",
+      "image/avif",
+      "video/mp4",
+      "video/webm",
+      "video/ogg",
+    ];
+
+    if (file && allowedFileTypes.includes(file.type)) {
+      setSelectedFile(file);
+    } else {
+      alert("Invalid file type. Please select an image or video file.");
+      e.target.value = ""; // Reset the file input
+    }
+  };
+
+  const UpdatePostLogo = async () => {
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append("logoImg", selectedFile);
+
+      try {
+        const response = await axios.put(
+          "http://localhost:1010/logo/logoimg/4",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        if (response.status === 200) {
+          setFeedback("Update successful!");
+          Toastify({
+            text: "Updated completely",
+            duration: 3000, // Duration in milliseconds
+            gravity: "top", // 'top' or 'bottom'
+            position: "right", // 'left', 'center', 'right'
+            backgroundColor: "#5EC693",
+          }).showToast();
+        } else {
+          setFeedback("Failed to update.");
+        }
+      } catch (error) {
+        console.error("Error updating:", error);
+        setFeedback("Error updating.");
+      }
+    } else {
+      setFeedback("Please select a file to upload.");
+    }
+  };
 
   const handleAddContent = () => {
     setContentFields((prevFields) => [
       ...prevFields,
-      {
-        content: "",
-      },
+      { content: "", link: "" },
     ]);
   };
 
   const handleAddContent2 = () => {
     setContentFields2((prevFields) => [
       ...prevFields,
-      {
-        content: "",
-      },
+      { content2: "", link2: "" },
     ]);
   };
 
-  const handleContentChange = (index, value) => {
+  const handleContentChange = (index, field, value) => {
     const updatedFields = [...contentFields];
-    updatedFields[index].content = value;
+    updatedFields[index][field] = value;
     setContentFields(updatedFields);
   };
 
-  const handleAddTheContent = () => {
-    // Handle the logic for adding the content as needed
-    console.log("Content Fields:", contentFields);
+  const handleContentChange2 = (index, field, value) => {
+    const updatedFields = [...contentFields2];
+    updatedFields[index][field] = value;
+    setContentFields2(updatedFields);
   };
 
-
-  
-
-  
-  const AddPost = async () => {
-    Toastify({
-      text: "Added completely",
-      duration: 3000, // Duration in milliseconds
-      gravity: "top", // 'top' or 'bottom'
-      position: "right", // 'left', 'center', 'right'
-      backgroundColor: "#5EC693",
-    }).showToast();
-  };
-
-  const UpdatePost = async () => {
-    Toastify({
-      text: "Updated completely",
-      duration: 3000, // Duration in milliseconds
-      gravity: "top", // 'top' or 'bottom'
-      position: "right", // 'left', 'center', 'right'
-      backgroundColor: "#5EC693",
-    }).showToast();
-  };
-
-  const DeletePost = async () => {
-    Toastify({
-      text: "Deleted completely",
-      duration: 3000, // Duration in milliseconds
-      gravity: "top", // 'top' or 'bottom'
-      position: "right", // 'left', 'center', 'right'
-      backgroundColor: "#ce5151",
-    }).showToast();
-  };
-
-
-
-
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/footer");
-        const data = response.data;
-        setAdd(data);
-      } catch (error) {
-        console.log(`Error getting data from frontend: ${error}`);
-      }
-    };
-
-    fetchData();
-  }, []);
-  
-  const handlePost = async () => {
-    if (!phone || !email || !address  || !social1 || !social2 || !social3) {
-      Toastify({
-        text: "Please Fill All Field",
-        duration: 3000, // Duration in milliseconds
-        gravity: "top", // 'top' or 'bottom'
-        position: 'right', // 'left', 'center', 'right'
-        backgroundColor: "#CA1616",
-      }).showToast();
-              return;
-    }
+  const updateTitle1 = async () => {
     try {
-      const formData = new FormData();
-      formData.append('phone', phone);
-      formData.append('email', email);
-      formData.append('address', address);
-      formData.append('extraContact', extraContact);
-      formData.append('social1', social1);
-      formData.append('social2', social2);
-      formData.append('social3', social3);
-
-      // Append each selected contact_video file individually
-
-      const response = await axios.post(
-        "http://localhost:8080/footer/post",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      setAdd(response.data);
-      Toastify({
-        text: "Added completely",
-        duration: 3000, // Duration in milliseconds
-        gravity: "top", // 'top' or 'bottom'
-        position: 'right', // 'left', 'center', 'right'
-        backgroundColor: "#5EC693",
-      }).showToast();
-    } catch (error) {
-      console.log(`Error fetching post data ${error}`);
-    }
-  };
-  const openUpdateForm = (id) => {
-    setIsUpdateFormVisible(true);
-    setUpdateFooterId(id);
-  };
-
-  const handleUpdate = async (id) => {
-    if (!phone || !email || !address  || !social1 || !social2 || !social3) {
-      Toastify({
-        text: "Please Fill All Field",
-        duration: 3000, // Duration in milliseconds
-        gravity: "top", // 'top' or 'bottom'
-        position: 'right', // 'left', 'center', 'right'
-        backgroundColor: "#CA1616",
-      }).showToast();
-              return;
-    }
-    try {
-      const formData = new FormData();
-      formData.append('phone', phone);
-      formData.append('email', email);
-      formData.append('address', address);
-      formData.append('extraContact', extraContact); // Append the selected image file
-      formData.append('social1', social1); // Append the selected image file
-      formData.append('social2', social2); // Append the selected image file
-      formData.append('social3', social3); // Append the selected image file
-  
       const response = await axios.put(
-        `http://localhost:8080/footer/update/${id}`,
-        formData, // Send the FormData object
+        "http://localhost:1010/footer/details/2",
         {
-          headers: {
-            "Content-Type": "multipart/form-data", // Set the content type to multipart/form-data
-          },
+          footerFirstTitle: title1,
+          footerSecoundTitle: title2,
+          footerThirdTitle: title3,
+          copyWriteText: copyWriteText,
+          textUnderInput: textUnderInput,
         }
       );
-      console.log(response.data);
-      setAdd((prevAdd) =>
-        prevAdd.map((data) =>
-          data.id === id ? response.data : data
-        )
-      );
+      if (response.status === 200) {
+        Toastify({
+          text: " updated successfully",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#5EC693",
+        }).showToast();
+      }
+    } catch (error) {
+      console.error("Error updating title 1:", error);
       Toastify({
-        text: "Updated completely",
-        duration: 3000, // Duration in milliseconds
-        gravity: "top", // 'top' or 'bottom'
-        position: 'right', // 'left', 'center', 'right'
-        backgroundColor: "#5EC693",
+        text: "Failed to update title 1",
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "red",
       }).showToast();
-      setIsUpdateFormVisible(false);
-    } catch (error) {
-      console.log(`Error in fetch edit data: ${error}`);
     }
   };
 
-  const handleDelete = async (id, index) => {
+  const handleAddTheContent = async (index) => {
+    const field = contentFields[index];
+    if (!field.content || !field.link) {
+      Toastify({
+        text: "Please fill in both content and link",
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "red",
+      }).showToast();
+      return;
+    }
+
     try {
-      const response = await axios.delete(
-        `http://localhost:8080/footer/delete/${id}`
-      );
-      console.log(id);
-      console.log(response);
-
-      setAdd((prevData) =>
-        prevData.filter((data) => data.id !== id)
+      const response = await axios.post(
+        "http://localhost:1010/footer/addfirstsectioncontent",
+        {
+          name: field.content,
+          path: field.link,
+        }
       );
 
-      setDel((prev) => prev.filter((_, i) => i !== index));
+      if (response.status === 200) {
+        Toastify({
+          text: "Content First Section added successfully",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#5EC693",
+        }).showToast();
+        // Optionally clear the fields or update the UI as needed
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Error adding content:", error);
+      Toastify({
+        text: "Failed to add content",
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "red",
+      }).showToast();
     }
   };
+
+  const handleAddTheContent2 = async (index) => {
+    const field = contentFields2[index];
+    if (!field.content2) {
+      Toastify({
+        text: "Please fill  content",
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "red",
+      }).showToast();
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "http://localhost:1010/footer/addsecoundsectioncontent",
+        {
+          name: field.content2,
+          // path: field.link2,
+        }
+      );
+
+      if (response.status === 200) {
+        Toastify({
+          text: "Content secound Section added successfully",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#5EC693",
+        }).showToast();
+        // Optionally clear the fields or update the UI as needed
+      }
+    } catch (error) {
+      console.error("Error adding content:", error);
+      Toastify({
+        text: "Failed to add content",
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "red",
+      }).showToast();
+    }
+  };
+
+  const handleSelectChange = (e) => {
+    const selectedContentId = e.target.value;
+    const content = contents.find((c) => c.id.toString() === selectedContentId);
+    if (content) {
+      setSelectedContent({
+        id: content.id,
+        name: content.name,
+        path: content.path,
+      });
+    }
+  };
+
+  const handleSelectChange2 = (e) => {
+    const selectedContentId2 = e.target.value;
+    const content = contents2.find(
+      (c) => c.id.toString() === selectedContentId2
+    );
+    if (content) {
+      setSelectedContent2({
+        id: content.id,
+        name: content.name,
+        path: content.path,
+      });
+    }
+  };
+
   return (
     <>
       <div className="content">
@@ -251,54 +502,65 @@ function Footer() {
                       <img src={require("../assets/img/footer.png")} />
                     </Col>
                   </Row>
-                
-                    <Row className='mt-5'>
+
+                  <Row className="mt-5">
                     <Col className="px-1" md="3">
                       <FormGroup>
                         <label>Logo</label>
                         <Input
                           type="file"
-                          
+                          onChange={handleFileChange}
+                          accept="image/*"
                         />
                       </FormGroup>
                     </Col>
-
 
                     <Col className="px-1 mt-2" md="5">
                       <FormGroup>
-                     <Button
-                        className="btn-round"
-                        color="primary"
-                        type="button"
-                        onClick={UpdatePost}
-                      >
-                        Update
-                      </Button>
-                      </FormGroup>
-                    </Col>
-                    </Row>
-
-                  <Row>
-                    <Col className="px-1" md="5">
-                      <FormGroup>
-                        <label>title</label>
-                        <Input
-                          type="text"
-                          onChange={(e) => setPhone(e.target.value)}
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col className="px-1" md="6">
-                      <FormGroup>
-                        <label>title2</label>
-                        <Input
-                          type="text"
-                          onChange={(e) => setPhone(e.target.value)}
-                        />
+                        <Button
+                          className="btn-round"
+                          color="primary"
+                          type="button"
+                          onClick={UpdatePostLogo}
+                        >
+                          Update
+                        </Button>
+                        {feedback && <div>{feedback}</div>}
                       </FormGroup>
                     </Col>
                   </Row>
 
+                  <Row>
+                    <Col className="px-1 mt-5" md="5">
+                      <h2>First Section</h2>
+                    </Col>
+                  </Row>
+
+                  <Row>
+                    <Col className="px-1" md="3">
+                      <FormGroup>
+                        <label>title1</label>
+                        <Input
+                          type="text"
+                          value={title1} // This should be the state variable representing the corresponding data
+                          onChange={(e) => setTitle1(e.target.value)}
+                        />
+                      </FormGroup>
+                    </Col>
+
+                    <Col className="px-1 mt-3" md="2">
+                      <FormGroup>
+                        <Button
+                          className="btn-round"
+                          color="primary"
+                          type="button"
+                          onClick={updateTitle1}
+                        >
+                          Update
+                        </Button>
+                      </FormGroup>
+                    </Col>
+                  </Row>
 
                   <Row>
                     <Col className="px-2 mt-3" md="3">
@@ -306,200 +568,392 @@ function Footer() {
                         <Button
                           className="btn-round"
                           color="primary"
-                          type="button"
                           onClick={handleAddContent}
                         >
                           + Add Content
                         </Button>
                       </FormGroup>
                     </Col>
+                    <Col className="px-2 mt-3" md="2"></Col>
+                  </Row>
 
-                    <Col className="px-2 mt-3" md="3">
-                     
+                  <Row>
+                    <Col className="px-2 ml-3" md="9">
+                      {contentFields.map((field, index) => (
+                        <Row key={index}>
+                          <Col className="px-1" md="3">
+                            <FormGroup>
+                              <label>Content</label>
+                              <Input
+                                type="text"
+                                value={field.content}
+                                onChange={(e) =>
+                                  handleContentChange(
+                                    index,
+                                    "content",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </FormGroup>
+                          </Col>
+                          <Col className="px-1" md="3">
+                            <FormGroup>
+                              <label>Link</label>
+                              <Input
+                                type="text"
+                                value={field.link}
+                                onChange={(e) =>
+                                  handleContentChange(
+                                    index,
+                                    "link",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </FormGroup>
+                          </Col>
+
+                          <Col className="px-2 mt-3" md="3">
+                            <FormGroup>
+                              <Button
+                                className="btn-round"
+                                color="primary"
+                                type="button"
+                                onClick={() => handleAddTheContent(index)}
+                              >
+                                Add The Content
+                              </Button>
+                            </FormGroup>
+                          </Col>
+                        </Row>
+                      ))}
                     </Col>
 
+                    <Row></Row>
+                  </Row>
+
+                  <Row>
                     <Col className="px-2 mt-3" md="3">
+                      <FormGroup>
+                        <label>First Contents</label>
+                        <Input
+                          type="select"
+                          value={selectedContent.id}
+                          onChange={handleSelectChange}
+                        >
+                          <option value="" disabled>
+                            Choose a Content
+                          </option>
+                          {contents.map((content) => (
+                            <option key={content.id} value={content.id}>
+                              {content.name}
+                            </option>
+                          ))}
+                        </Input>
+                      </FormGroup>
+                    </Col>
+
+                    <Col className="px-2 mt-3" md="2"></Col>
+                  </Row>
+
+                  <Row>
+                    {selectedContent.id && (
+                      <>
+                        <Col className="px-1" md="3">
+                          <FormGroup>
+                            <label>Content Details</label>
+                            <Input
+                              type="text"
+                              value={selectedContent.name}
+                              onChange={(e) =>
+                                setSelectedContent({
+                                  ...selectedContent,
+                                  name: e.target.value,
+                                })
+                              }
+                            />
+                          </FormGroup>
+                        </Col>
+
+                        <Col className="px-1" md="3">
+                          <FormGroup>
+                            <label>Link Details</label>
+                            <Input
+                              type="text"
+                              value={selectedContent.path}
+                              onChange={(e) =>
+                                setSelectedContent({
+                                  ...selectedContent,
+                                  path: e.target.value,
+                                })
+                              }
+                            />
+                          </FormGroup>
+                        </Col>
+
+                        <Col className="px-2 mt-3" md="3">
+                          <FormGroup>
+                            <Button
+                              className="btn-round"
+                              color="primary"
+                              type="button"
+                              onClick={UpdateContent}
+                            >
+                              Update
+                            </Button>
+
+                            <Button
+                              className="btn-round btn-danger"
+                              color="primary"
+                              type="button"
+                              onClick={DeleteContent}
+                            >
+                              Delete
+                            </Button>
+                          </FormGroup>
+                        </Col>
+                      </>
+                    )}
+                  </Row>
+
+                  <Row style={{ marginTop: "100px" }}>
+                    <Col className="px-1 ml-3 mt-5" md="6">
+                      <h2>Secound Section</h2>
+                    </Col>
+                  </Row>
+
+                  <Row>
+                    <Col className="px-1" md="3">
+                      <FormGroup>
+                        <label>title2</label>
+                        <Input
+                          type="text"
+                          value={title2} // This should be the state variable representing the corresponding data
+                          onChange={(e) => setTitle2(e.target.value)}
+                        />
+                      </FormGroup>
+                    </Col>
+
+                    <Col className="px-1 mt-3" md="3">
                       <FormGroup>
                         <Button
                           className="btn-round"
                           color="primary"
                           type="button"
-                          onClick={handleAddContent2}
+                          onClick={updateTitle1}
                         >
-                          + Add Content
+                          Update
                         </Button>
                       </FormGroup>
                     </Col>
                   </Row>
 
                   <Row>
-                    <Col className="px-2 ml-3" md="6">
-
-                    
-                  {contentFields.map((field, index) => (
-                    <Row key={index}>
-                      <Col className="px-1" md="5">
-                        <FormGroup>
-                          <label>Content</label>
-                          <Input
-                            type="text"
-                            value={field.content}
-                            onChange={(e) =>
-                              handleContentChange(index, e.target.value)
-                            }
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col className="px-1" md="5">
-                        <FormGroup>
-                          <label>Link</label>
-                          <Input
-                            type="text"
-                            value={field.content}
-                            onChange={(e) =>
-                              handleContentChange(index, e.target.value)
-                            }
-                          />
-                        </FormGroup>
-                      </Col>
-
-                      <Col className="px-2 mt-3" md="5">
-                        <FormGroup>
-                          <Button
-                            className="btn-round"
-                            color="primary"
-                            type="button"
-                            onClick={AddPost}
-                          >
-                            Add The Content
-                          </Button>
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                  ))}
-
+                    <Col className="px-2 mt-3" md="3">
+                      <FormGroup>
+                        <Button
+                          className="btn-round"
+                          color="primary"
+                          onClick={handleAddContent2}
+                        >
+                          + Add Content2
+                        </Button>
+                      </FormGroup>
                     </Col>
-
-
-                    <Col className="px-2" md="5">
-
-                    
-{contentFields2.map((field, index) => (
-  <Row key={index}>
-    <Col className="px-1" md="5">
-      <FormGroup>
-        <label>Content</label>
-        <Input
-          type="text"
-          value={field.content}
-          onChange={(e) =>
-            handleContentChange(index, e.target.value)
-          }
-        />
-      </FormGroup>
-    </Col>
-    <Col className="px-1" md="5">
-                        <FormGroup>
-                          <label>Link</label>
-                          <Input
-                            type="text"
-                            value={field.content}
-                            onChange={(e) =>
-                              handleContentChange(index, e.target.value)
-                            }
-                          />
-                        </FormGroup>
-                      </Col>
-
-    <Col className="px-2 mt-3" md="5">
-      <FormGroup>
-        <Button
-          className="btn-round"
-          color="primary"
-          type="button"
-          onClick={AddPost}
-        >
-          Add The Content
-        </Button>
-      </FormGroup>
-    </Col>
-  </Row>
-))}
-
-  </Col>
                   </Row>
 
+                  <Row>
+                    <Col className="px-2 ml-3" md="5">
+                      {contentFields2.map((field, index) => (
+                        <Row key={index}>
+                          <Col className="px-1" md="5">
+                            <FormGroup>
+                              <label>Content2</label>
+                              <Input
+                                type="text"
+                                value={field.content2}
+                                onChange={(e) =>
+                                  handleContentChange2(
+                                    index,
+                                    "content2",
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </FormGroup>
+                          </Col>
+                          {/* <Col className="px-1" md="5">
+                  <FormGroup>
+                    <label>Link2</label>
+                    <Input
+                      type="text"
+                      value={field.link2}
+                      onChange={(e) => handleContentChange2(index, 'link2', e.target.value)}
+                    />
+                  </FormGroup>
+                </Col> */}
+
+                          <Col className="px-2 mt-3" md="5">
+                            <FormGroup>
+                              <Button
+                                className="btn-round"
+                                color="primary"
+                                type="button"
+                                onClick={() => handleAddTheContent2(index)}
+                              >
+                                Add The Content
+                              </Button>
+                            </FormGroup>
+                          </Col>
+                        </Row>
+                      ))}
+                    </Col>
+                  </Row>
 
                   <Row>
-        <Col className="px-1" md="3">
-            <FormGroup>
-              <label> Title Subscribe Section </label>
-              <Input
-                type="text"
-              
-              />
-            </FormGroup>
-          </Col>
+                    <Col className="px-2 mt-3" md="3">
+                      <FormGroup>
+                        <label>Secound Contents</label>
+                        <Input
+                          type="select"
+                          value={selectedContent2.id}
+                          onChange={handleSelectChange2}
+                        >
+                          <option value="" disabled>
+                            Choose a Content
+                          </option>
+                          {contents2.map((content) => (
+                            <option key={content.id} value={content.id}>
+                              {content.name}
+                            </option>
+                          ))}
+                        </Input>
+                      </FormGroup>
+                    </Col>
+                  </Row>
 
-        <Col className="px-1" md="3">
-            <FormGroup>
-              <label> Place holder for Subscribe input </label>
-              <Input
-                type="text"
-              
-              />
-            </FormGroup>
-          </Col>
+                  <Row>
+                    {selectedContent2.id && (
+                      <>
+                        <Col className="px-1" md="3">
+                          <FormGroup>
+                            <label>Content Details</label>
+                            <Input
+                              type="text"
+                              value={selectedContent2.name}
+                              onChange={(e) =>
+                                setSelectedContent2({
+                                  ...selectedContent2,
+                                  name: e.target.value,
+                                })
+                              }
+                            />
+                          </FormGroup>
 
+                          <FormGroup>
+                            <Button
+                              className="btn-round"
+                              color="primary"
+                              type="button"
+                              onClick={UpdateContent2}
+                            >
+                              Update
+                            </Button>
 
-        <Col className="px-1" md="3">
-            <FormGroup>
-              <label> Text under the input </label>
-              <Input
-                type="text"
-              
-              />
-            </FormGroup>
-          </Col>
+                            <Button
+                              className="btn-round btn-danger"
+                              color="primary"
+                              type="button"
+                              onClick={DeleteContent2}
+                            >
+                              Delete
+                            </Button>
+                          </FormGroup>
+                        </Col>
+                      </>
+                    )}
+                  </Row>
 
-        </Row>
+                  <Row>
+                    <Col className="px-1 ml-1 mt-5" md="6">
+                      <h2>Third Section "Subscribe"</h2>
+                    </Col>
+                  </Row>
 
+                  <Row>
+                    <Col className="px-1" md="3">
+                      <FormGroup>
+                        <label> Title Subscribe Section </label>
+                        <Input
+                          type="text"
+                          value={title3} // This should be the state variable representing the corresponding data
+                          onChange={(e) => setTitle3(e.target.value)}
+                        />
+                      </FormGroup>
+                    </Col>
 
-      <Row>
-        <Col className="px-2 mt-3" md="12">
-          <FormGroup>
-           <AddSocial/>
-          </FormGroup>
-        </Col>
-      </Row>
+                    <Col className="px-1" md="3">
+                      <FormGroup>
+                        <label> Text under the input </label>
+                        <Input
+                          type="text"
+                          value={textUnderInput} // This should be the state variable representing the corresponding data
+                          onChange={(e) => setTextUnderInput(e.target.value)}
+                        />
+                      </FormGroup>
+                    </Col>
 
-      <Row>
-        <Col className="px-2 mt-3" md="12">
-          <FormGroup>
-          <label> Copy write text </label>
-              <Input
-                type="text"
-              
-              />
-          </FormGroup>
-        </Col>
-      </Row>
+                    <Col className="px-1 mt-3" md="3">
+                      <FormGroup>
+                        <Button
+                          className="btn-round"
+                          color="primary"
+                          type="button"
+                          onClick={updateTitle1}
+                        >
+                          Update
+                        </Button>
+                      </FormGroup>
+                    </Col>
+                  </Row>
 
+                  <Row>
+                    <Col className="px-2 mt-3" md="12">
+                      <FormGroup>
+                        <AddSocialFooter />
+                      </FormGroup>
+                    </Col>
+                  </Row>
 
+                  <Row>
+                    <Col className="px-2 mt-5" md="12">
+                      <h2>Copy write text</h2>
+                    </Col>
+                  </Row>
 
+                  <Row>
+                    <Col className="px-2 mt-3" md="12">
+                      <FormGroup>
+                        <label> Copy write text </label>
+                        <Input
+                          type="text"
+                          value={copyWriteText} // This should be the state variable representing the corresponding data
+                          onChange={(e) => setCopyWriteText(e.target.value)}
+                        />
+                      </FormGroup>
+                    </Col>
+                  </Row>
 
-
-
-                
                   <Row>
                     <div className="update ml-auto mr-auto">
                       <Button
                         className="btn-round"
                         color="primary"
                         type="button"
-                        onClick={handlePost}
+                        onClick={updateTitle1}
                       >
-                        Add
+                        Update
                       </Button>
                     </div>
                   </Row>
@@ -508,194 +962,10 @@ function Footer() {
             </Card>
           </Col>
         </Row>
-        <Row>
-          <Col md="12">
-            <Card>
-              <CardHeader>
-                <CardTitle tag="h4">Footer Table</CardTitle>
-              </CardHeader>
-              <CardBody>
-                <Table responsive>
-                  <thead className="text-primary">
-                    <tr>
-                      <th>phone</th>
-                      <th>email</th>
-                      <th>address</th>
-                      <th>extraContact</th>
-                      <th>social media</th>
-                      <th>social media</th>
-                      <th>social media</th>
-                    </tr>
-                  </thead>
-                  {add &&
-                    Array.isArray(add) &&
-                    add.map((data, index) => (
-                      <tbody key={data.id}>
-                        <tr key={data.id}>
-                          <td>{data.phone}</td>
-                          <td>{data.email}</td>
-                          <td>{data.address}</td>
-                          <td>{data.extraContact}</td>
-
-                          <td>
-                            <img
-                              src={`http://localhost:8080/` + data.social1}
-                              alt={`Contact Video`}
-                              height={"50%"}
-                              width={"50%"}
-                            />
-                          </td>
-                          <td>
-                            <img
-                              src={`http://localhost:8080/` + data.social2}
-                              alt={`Contact Video`}
-                              height={"50%"}
-                              width={"50%"}
-                            />
-                          </td>
-                          <td>
-                            <img
-                              src={`http://localhost:8080/` + data.social3}
-                              alt={`Contact Video`}
-                              height={"50%"}
-                              width={"50%"}
-                            />
-                          </td>
-                          <td>
-                            <button
-                              onClick={
-                                () => handleDelete(data.id, index) // Calling handleDelete with the product's _id and index
-                              }
-                            >
-                              delete
-                            </button>
-                            <button onClick={() => openUpdateForm(data.id)}>
-                              update
-                            </button>
-                          </td>
-                        </tr>
-                      </tbody>
-                    ))}
-                </Table>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
       </div>
-      <Row>
-        <Col md="12">
-          <Card className="card-user">
-            {isUpdateFormVisible && (
-              <div>
-                <CardHeader>
-                  <CardTitle tag="h5">Update Footer</CardTitle>
-                </CardHeader>
-                <CardBody>
-                  <Form>
-                    <Row>
-                      <Col className="px-1" md="3">
-                        <FormGroup>
-                          <label>phone</label>
-                          <Input
-                            type="number"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col className="px-1" md="3">
-                        <FormGroup>
-                          <label>email</label>
-                          <Input
-                            type="text"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col md="3">
-                        <FormGroup>
-                          <label>address</label>
-                          <Input
-                            type="text"
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                          />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col className="px-1" md="3">
-                        <FormGroup>
-                          <label>Extra Contact</label>
-                          <Input
-                            placeholder="optional"
-                            type="text"
-                            onChange={(e) => setExtraContact(e.target.value)}
-                          />
-                        </FormGroup>
-                      </Col>
-                      <Col className="pl-1" md="4">
-                        <FormGroup>
-                          <label htmlFor="exampleInputEmail1">
-                            social media 1{" "}
-                          </label>
-                          <input
-                            type="file"
-                            name="image_data"
-                            onChange={(e) => setSocial1(e.target.files[0])} // Update state with the selected file
-                          />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <Col className="pl-1" md="3">
-                        <FormGroup>
-                          <label htmlFor="exampleInputEmail1">
-                            social media 2{" "}
-                          </label>
-                          <input
-                            type="file"
-                            name="image_data"
-                            onChange={(e) => setSocial2(e.target.files[0])} // Update state with the selected file
-                          />
-                        </FormGroup>
-                      </Col>
-
-                      <Col className="pl-1" md="3">
-                        <FormGroup>
-                          <label htmlFor="exampleInputEmail1">
-                            social media 3{" "}
-                          </label>
-                          <input
-                            type="file"
-                            name="image_data"
-                            onChange={(e) => setSocial3(e.target.files[0])} // Update state with the selected file
-                          />
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                    <Row>
-                      <div className="update ml-auto mr-auto">
-                        <Button
-                          className="btn-round"
-                          color="primary"
-                          type="button"
-                          onClick={() => handleUpdate(updateFooterId)}
-                        >
-                          Update Footer
-                        </Button>
-                      </div>
-                    </Row>
-                  </Form>
-                </CardBody>
-              </div>
-            )}
-          </Card>
-        </Col>
-      </Row>
+      <Row></Row>
     </>
   );
 }
 
-export default Footer
+export default Footer;

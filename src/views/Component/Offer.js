@@ -58,7 +58,7 @@ function YourComponent() {
   };
 
   const handleAddField = () => {
-    if (numRows < 4) {
+    if (numRows < 3) {
       setNumRows(numRows + 1);
       setShowAdditionalFields(true);
     } else {
@@ -79,6 +79,12 @@ function YourComponent() {
 
   return (
     <>
+
+    
+<Row className="mt-5">
+                    <h3>Edit & Delete "Number Delails"</h3>
+                  </Row>
+    
 
         
 <Row>
@@ -115,9 +121,7 @@ function YourComponent() {
           <FormGroup>
             <label>Text1</label>
             <Input
-              value={title}
               type="text"
-              onChange={(e) => setTitle(e.target.value)}
             />
           </FormGroup>
         </Col>
@@ -125,14 +129,14 @@ function YourComponent() {
         <Col className="px-1" md="3">
           <FormGroup>
             <label>Text2</label>
-            <Input type="text" onChange={(e) => setSubtitle(e.target.value)} />
+            <Input type="text" />
           </FormGroup>
         </Col>
 
         <Col className="px-1" md="3">
           <FormGroup>
             <label>Number</label>
-            <Input type="text" onChange={(e) => setSubtitle(e.target.value)} />
+            <Input type="text" />
           </FormGroup>
         </Col>
 
@@ -164,7 +168,10 @@ function YourComponent() {
                   </Row>
 
 
-
+    
+                  <Row className="mt-5">
+                    <h3>Add "Number Delails"</h3>
+                  </Row>
 
       <Row>
         <Col className="px-2 mt-3" md="3">
@@ -189,9 +196,8 @@ function YourComponent() {
                 <FormGroup>
                   <label>Text1</label>
                   <Input
-                    value={title}
+                  
                     type="text"
-                    onChange={(e) => setTitle(e.target.value)}
                   />
                 </FormGroup>
               </Col>
@@ -201,7 +207,6 @@ function YourComponent() {
                   <label>Text2</label>
                   <Input
                     type="text"
-                    onChange={(e) => setSubtitle(e.target.value)}
                   />
                 </FormGroup>
               </Col>
@@ -211,7 +216,6 @@ function YourComponent() {
                   <label>Number</label>
                   <Input
                     type="text"
-                    onChange={(e) => setNumber(e.target.value)}
                   />
                 </FormGroup>
               </Col>
@@ -233,6 +237,13 @@ function YourComponent() {
         </Row>
       ))}
 
+
+        <Row className="mt-5">
+            <h2>Title's & Button Link</h2>
+        </Row>
+
+
+
       <Row className=" mt-5 mb-5">
         <Col className="px-1 " md="3">
           <FormGroup>
@@ -244,6 +255,8 @@ function YourComponent() {
             />
           </FormGroup>
         </Col>
+
+ 
 
         <Col className="px-1" md="3">
           <FormGroup>
@@ -268,6 +281,7 @@ function YourComponent() {
             <Input
               type="text"
               onChange={(e) => setContent(e.target.value)} // Update state with the selected file
+              placeholder="Type name of the page want to go to"
             />
           </FormGroup>
         </Col>
@@ -283,6 +297,9 @@ function YourComponent() {
 
  
 
+      <Row className="mt-5">
+            <h2>Detailes Blog's " Add , Update & Delete"</h2>
+        </Row>
 
                
 <Row>
@@ -372,7 +389,7 @@ function YourComponent() {
               type="button"
               onClick={handleAddBlogField}
             >
-              Add one more field
+              Add blog content field
             </Button>
           </FormGroup>
         </Col>

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { Button, Col, FormGroup, Input, Label, Row } from "reactstrap";
-import Toastify from "toastify-js";
+import React, { useEffect, useState } from 'react';
+import { Button, Col, FormGroup, Input, Row } from 'reactstrap';
+import Toastify from 'toastify-js';
+import axios from 'axios';
 
 function YourComponent() {
   const [contentItems, setContentItems] = useState([]);
@@ -11,51 +12,194 @@ function YourComponent() {
   const [showAdditionalContentFields, setShowAdditionalContentFields] =
   useState(false);
 const [numContent, setNumContent] = useState(0);
+const [benefitsOptions, setBenefitsOptions] = useState([]);
+const [selectedBenefitTitle, setSelectedBenefitTitle] = useState('');
+const [selectedBenefitContent, setSelectedBenefitContent] = useState('');
+const [selectedBenefitId, setSelectedBenefitId] = useState(null); // New state for tracking the selected benefit's ID
 
 
+
+  useEffect(() => {
+    const fetchBenefitsContent = async () => {
+      try {
+        const response = await axios.get('http://localhost:1010/ourbenfits/ourbenfitscontent');
+        setBenefitsOptions(response.data);
+      } catch (error) {
+        console.error('Error fetching benefits content:', error);
+      }
+    };
+
+    fetchBenefitsContent();
+  }, []);
+
+  // const handleContentChange = (index, type, value) => {
+  //   const updatedContentFields = [...contentFields];
+  //   updatedContentFields[index][type] = value;
+  //   setContentFields(updatedContentFields);
+  // };
+  
   const handleAddContentField = () => {
-    if (numContent < 3) {
-      setNumContent(numContent + 1);
-      setShowAdditionalContentFields(true);
+    if (benefitsOptions.length < 3) {
+      // Only set the state for a single new content item
+      setSubTitle("");
+      setContent("");
+      setShowAdditionalContentFields(true); // Show the input fields
     } else {
-      alert("Available Three Content Field's as a Maximum ");
+      alert("Available Three Content Field's as a Maximum");
+    }
+  };
+  
+  
+
+  const handleSelectedOptionChange = (e) => {
+    const title = e.target.value;
+    setSelectedOption(title);
+
+    // Find the benefit data from the benefitsOptions array
+    const benefitData = benefitsOptions.find(benefit => benefit.title === title);
+
+    // Set the subTitle and content from the found benefit data
+    if (benefitData) {
+      setSelectedBenefitId(benefitData.id); // Set the ID for the selected benefit
+      setSelectedBenefitTitle(benefitData.title);
+      setSelectedBenefitContent(benefitData.content);
     }
   };
 
-
+  // const AddPost = async () => {
+  //   Toastify({
+  //     text: "Added completely",
+  //     duration: 3000, // Duration in milliseconds
+  //     gravity: "top", // 'top' or 'bottom'
+  //     position: "right", // 'left', 'center', 'right'
+  //     backgroundColor: "#5EC693",
+  //   }).showToast();
+  // };
 
   const AddPost = async () => {
-    Toastify({
-      text: "Added completely",
-      duration: 3000, // Duration in milliseconds
-      gravity: "top", // 'top' or 'bottom'
-      position: "right", // 'left', 'center', 'right'
-      backgroundColor: "#5EC693",
-    }).showToast();
-  };
-
+    const itemToAdd = {
+      title: subTitle,
+      content: content
+    };
+  
+    try {
+      const response = await axios.post('http://localhost:1010/ourbenfits/addcontent', itemToAdd);
+      if (response.status === 200) {
+        // Assuming the response contains the newly added item
+        const newItem = response.data; 
+  
+        // Update the benefitsOptions state to include the new item
+        setBenefitsOptions(prevOptions => [...prevOptions, newItem]);
 
   
-  const UpdatePost = async () => {
-    Toastify({
-      text: "Updated completely",
-      duration: 3000, // Duration in milliseconds
-      gravity: "top", // 'top' or 'bottom'
-      position: "right", // 'left', 'center', 'right'
-      backgroundColor: "#5EC693",
-    }).showToast();
+        Toastify({
+          text: "Content added successfully",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#5EC693",
+        }).showToast();
+  
+        // Reset subtitle and content after adding
+        setSubTitle("");
+        setContent("");
+        setShowAdditionalContentFields(false); // Hide the input fields again
+      } else {
+        throw new Error('Failed to add the content');
+      }
+    } catch (error) {
+      console.error('Error adding the content:', error);
+      Toastify({
+        text: "Failed to add content",
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "#ce5151",
+      }).showToast();
+    }
+  };
+  
+  
+  
+  
+
+  
+ 
+  const UpdateContent = async () => {
+    // Construct the payload for the PUT request
+    const payload = {
+      title: selectedBenefitTitle,
+      content: selectedBenefitContent
+    };
+  
+    try {
+      const response = await axios.put(`http://localhost:1010/ourbenfits/ourbenfitscontent/${selectedBenefitId}`, payload);
+      if (response.status === 200) {
+        // Update the local state to reflect the changed data
+        const updatedBenefits = benefitsOptions.map((benefit) => {
+          if (benefit.id === selectedBenefitId) {
+            return { ...benefit, title: selectedBenefitTitle, content: selectedBenefitContent };
+          }
+          return benefit;
+        });
+        setBenefitsOptions(updatedBenefits);
+  
+        Toastify({
+          text: "Updated successfully",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#5EC693",
+        }).showToast();
+      } else {
+        throw new Error('Failed to update the post');
+      }
+    } catch (error) {
+      console.error('Error updating the post:', error);
+      Toastify({
+        text: "Update failed",
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "#ce5151",
+      }).showToast();
+    }
+  };
+  
+  const DeleteContent = async () => {
+    try {
+      const response = await axios.delete(`http://localhost:1010/ourbenfits/ourbenfitscontent/${selectedBenefitId}`);
+      if (response.status === 200) {
+        // Remove the deleted benefit from the benefitsOptions state
+        setBenefitsOptions(benefitsOptions.filter(benefit => benefit.id !== selectedBenefitId));
+        // Reset the selected options
+        setSelectedOption('');
+        setSelectedBenefitId(null);
+        setSelectedBenefitTitle('');
+        setSelectedBenefitContent('');
+
+        Toastify({
+          text: "Deleted successfully",
+          duration: 3000,
+          gravity: "top",
+          position: "right",
+          backgroundColor: "#ce5151",
+        }).showToast();
+      } else {
+        throw new Error('Failed to delete the post');
+      }
+    } catch (error) {
+      console.error('Error deleting the post:', error);
+      Toastify({
+        text: "Delete failed",
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "#ce5151",
+      }).showToast();
+    }
   };
 
-
-  const DeletePost = async () => {
-    Toastify({
-      text: "Deleted completely",
-      duration: 3000, // Duration in milliseconds
-      gravity: "top", // 'top' or 'bottom'
-      position: "right", // 'left', 'center', 'right'
-      backgroundColor: "#ce5151",
-    }).showToast();
-  };
 
 
 
@@ -89,36 +233,38 @@ const [numContent, setNumContent] = useState(0);
 
   return (
     <>
-
-
 <Row>
-                  <Col className="px-2 mt-3" md="3">
-        <FormGroup>
-          <label>Select Content for Benefits</label>
-          <Input
-            type="select"
-            value={selectedOption}
-            onChange={(e) => setSelectedOption(e.target.value)}
-          >
-            <option value="" disabled>Content Benefits</option>
-            <option value="option1">High Standarts</option>
-            <option value="option2">Focus on People</option>
-            <option value="option3">Different Thinking</option>
-            {/* Add more options as needed */}
-          </Input>
-        </FormGroup>
-      </Col>
-    </Row>
+        <Col className="px-2 mt-3" md="3">
+          <FormGroup>
+            <label>Select Content for Benefits</label>
+            <Input
+              type="select"
+              value={selectedOption}
+              onChange={handleSelectedOptionChange}
+            >
+              <option value="" disabled>Content Benefits</option>
+              {benefitsOptions.map((benefit) => (
+                <option key={benefit.id} value={benefit.title}>
+                  {benefit.title}
+                </option>
+              ))}
+            </Input>
+          </FormGroup>
+        </Col>
+      </Row>
+      <Row>
+        <h3>Can add only three content </h3>
+      </Row>
 
-    <Row>
-    {selectedOption && (
-        <>
-       <Col className="px-1" md="3">
+      {selectedOption && (
+        <Row>
+          <Col className="px-1" md="3">
             <FormGroup>
               <label>Sub Title</label>
               <Input
                 type="text"
-               
+                value={selectedBenefitTitle}
+                onChange={(e) => setSelectedBenefitTitle(e.target.value)}
               />
             </FormGroup>
           </Col>
@@ -127,8 +273,9 @@ const [numContent, setNumContent] = useState(0);
             <FormGroup>
               <label>Content</label>
               <Input
-                type="text"
-                
+                type="textarea" // Changed to 'textarea' for multiline content
+                value={selectedBenefitContent}
+                onChange={(e) => setSelectedBenefitContent(e.target.value)}
               />
             </FormGroup>
           </Col>
@@ -139,7 +286,7 @@ const [numContent, setNumContent] = useState(0);
                 className="btn-round"
                 color="primary"
                 type="button"
-                onClick={UpdatePost}
+                onClick={UpdateContent}
                
               >
                 Update
@@ -150,7 +297,7 @@ const [numContent, setNumContent] = useState(0);
                 className="btn-round  btn-danger"
                 color="primary"
                 type="button"
-                onClick={DeletePost}
+                onClick={DeleteContent}
               >
                 Delete
               </Button>
@@ -161,73 +308,72 @@ const [numContent, setNumContent] = useState(0);
 
           
           
-        </>
-      )}
+        
     </Row>
+      )}
 
 
 
 
-      <Row>
-        <Col className="px-2 mt-3" md="3">
-          <FormGroup>
-            <Button
-              className="btn-round"
-              color="primary"
-              type="button"
-              onClick={handleAddContentField}
-            >
-              Add Content
-            </Button>
-          </FormGroup>
-        </Col>
-      </Row>
+<Row>
+  <Col className="px-2 mt-3" md="3">
+    <FormGroup>
+      {benefitsOptions.length < 3 && (
+        <Button
+          className="btn-round"
+          color="primary"
+          type="button"
+          onClick={handleAddContentField}
+        >
+          Add Content
+        </Button>
+      )}
+    </FormGroup>
+  </Col>
+</Row>
 
-      {[...Array(numContent)].map((_, index) => (
-        <Row key={index}>
-          {showAdditionalContentFields && (
-            <>
-            
-            <Col className="px-1" md="3">
-            <FormGroup>
-              <label>Sub Title</label>
-              <Input
-                type="text"
-                
-               
-              />
-            </FormGroup>
-          </Col>
 
-          <Col className="px-1" md="3">
-            <FormGroup>
-              <label>Content</label>
-              <Input
-                type="text"
-               
-                
-              />
-            </FormGroup>
-          </Col>
+{showAdditionalContentFields && (
+  <Row>
+    <Col className="px-1" md="3">
+      <FormGroup>
+        <label>Sub Title</label>
+        <Input
+          type="text"
+          value={subTitle}
+          onChange={(e) => setSubTitle(e.target.value)}
+        />
+      </FormGroup>
+    </Col>
 
-            <Col className="px-2 mt-3" md="3">
-              <FormGroup>
-                <Button
-                  className="btn-round"
-                  color="primary"
-                  type="button"
-                  onClick={AddPost}
-                >
-                  Add 
-                </Button>
-              </FormGroup>
-            </Col>
-            </>
-          )}
-        </Row>
-      ))}
+    <Col className="px-1" md="3">
+      <FormGroup>
+        <label>Content</label>
+        <Input
+          type="text"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+        />
+      </FormGroup>
+    </Col>
 
-      {contentItems.map((item, index) => (
+    <Col className="px-2 mt-3" md="3">
+      <FormGroup>
+        <Button
+          className="btn-round"
+          color="primary"
+          type="button"
+          onClick={AddPost}
+        >
+          Add 
+        </Button>
+      </FormGroup>
+    </Col>
+  </Row>
+)}
+
+
+      {/* {contentItems.map((item, index) => (
         <Row key={index}>
           <Col className="px-1" md="3">
             <FormGroup>
@@ -272,7 +418,7 @@ const [numContent, setNumContent] = useState(0);
         </Col>
       </Row>
         </>
-      )}
+      )} */}
 
     </>
   );

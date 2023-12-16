@@ -1,27 +1,55 @@
 import React, { useState } from "react";
+import axios from 'axios';
 import { Button, Col, FormGroup, Input, Row } from "reactstrap";
 import Toastify from "toastify-js";
 
 function NavbarWhenScrollup() {
-  const [items, setItems] = useState([]);
-  const [selectedOptionPage, setSelectedOptionPage] = useState("");
-  
-  const [logoFile, setLogoFile] = useState(null);
+  const [items, setItems] = useState([
+    {
+      title: "",
+      path: "",
+    },
+  ]);  const [selectedOptionPage, setSelectedOptionPage] = useState("");
 
-  const handleLogoChange = (e) => {
-    const selectedFile = e.target.files[0];
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [feedback, setFeedback] = useState('');
 
-    // Check if a file is selected
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
+
+  const UpdatePostLogo = async () => {
     if (selectedFile) {
-      // Check if the selected file type is an image
-      if (selectedFile.type.startsWith("image/")) {
-        setLogoFile(selectedFile);
-      } else {
-        // Alert or handle the case when the selected file is not an image
-        alert("Please select an image file.");
+      const formData = new FormData();
+      formData.append('logoImg', selectedFile);
+
+      try {
+        const response = await axios.put('http://localhost:1010/logo/logoimg/4', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        if (response.status === 200) {
+          setFeedback('Update successful!');
+          Toastify({
+            text: "Updated completely",
+            duration: 3000, // Duration in milliseconds
+            gravity: "top", // 'top' or 'bottom'
+            position: "right", // 'left', 'center', 'right'
+            backgroundColor: "#5EC693",
+          }).showToast();
+        } else {
+          setFeedback('Failed to update.');
+        }
+      } catch (error) {
+        console.error('Error updating:', error);
+        setFeedback('Error updating.');
       }
+    } else {
+      setFeedback('Please select a file to upload.');
     }
   };
+
 
   const AddPost = async () => {
     Toastify({
@@ -53,35 +81,50 @@ function NavbarWhenScrollup() {
     }).showToast();
   };
 
+  const handleAddItem = async () => {
+    try {
 
+      
+      const response = await axios.post("http://localhost:1010/pages/addpage", {
+        namePage: items[0].title,
+        path: items[0].path,
+      });
 
+      // Handle the response, e.g., show a success message or update UI
+      console.log("Page added successfully:", response.data);
 
+      Toastify({
+        text: "Added completely",
+        duration: 3000, // Duration in milliseconds
+        gravity: "top", // 'top' or 'bottom'
+        position: "right", // 'left', 'center', 'right'
+        backgroundColor: "#5EC693",
+      }).showToast();
 
-  const handleAddItem = () => {
-    setItems([
-      ...items,
-      {
-        title: "",
-        path: "",
-      },
-    ]);
+      
+    } catch (error) {
+      console.error("Error adding page:", error);
+      // Handle the error, e.g., show an error message
+    }
   };
 
+
   const handleItemChange = (e, index, field) => {
-    const updatedItems = [...items];
-    updatedItems[index][field] = e.target.value;
-    setItems(updatedItems);
+    const newItems = [...items];
+    newItems[index][field] = e.target.value;
+    setItems(newItems);
   };
 
   return (
     <>
-      {items.map((item, index) => (
+    {items.map((item, index) => (
         <Row key={index}>
           <Col className="px-1" md="3">
             <FormGroup>
               <label>Page Name</label>
               <Input
                 type="text"
+                value={item.title}
                 onChange={(e) => handleItemChange(e, index, "title")}
               />
             </FormGroup>
@@ -92,22 +135,23 @@ function NavbarWhenScrollup() {
               <label>Path</label>
               <Input
                 type="text"
+                value={item.path}
                 onChange={(e) => handleItemChange(e, index, "path")}
               />
             </FormGroup>
           </Col>
           <Col className="px-2 mt-3" md="3">
-                <FormGroup>
-                  <Button
-                    className="btn-round"
-                    color="primary"
-                    type="button"
-                    onClick={AddPost}
-                  >
-                    Add
-                  </Button>
-                </FormGroup>
-              </Col>
+            <FormGroup>
+              <Button
+                className="btn-round"
+                color="primary"
+                type="button"
+                onClick={handleAddItem}
+              >
+                Add
+              </Button>
+            </FormGroup>
+          </Col>
         </Row>
       ))}
 
@@ -126,136 +170,122 @@ function NavbarWhenScrollup() {
         </Col>
       </Row>
 
+      <Row>
+        <Col className="px-2 mt-3" md="3">
+          <FormGroup>
+            <label>Pages</label>
+            <Input
+              type="select"
+              value={selectedOptionPage}
+              onChange={(e) => setSelectedOptionPage(e.target.value)}
+            >
+              <option value="" disabled>
+                Pages
+              </option>
+              <option value="option1">Page Name 1</option>
+              <option value="option2">Page Name 2</option>
+              <option value="option3">Page Name 3</option>
+              {/* Add more options as needed */}
+            </Input>
+          </FormGroup>
+        </Col>
+      </Row>
 
       <Row>
-                    <Col className="px-2 mt-3" md="3">
-                      <FormGroup>
-                        <label>About Us</label>
-                        <Input
-                          type="select"
-                          value={selectedOptionPage}
-                          onChange={(e) => setSelectedOptionPage(e.target.value)}
-                        >
-                          <option value="" disabled>
-                           Pages
-                          </option>
-                          <option value="option1">
-                          Page Name 1
-                          </option>
-                          <option value="option2">
-                          Page Name 2
-                          </option>
-                          <option value="option3">
-                          Page Name 3
-                          </option>
-                          {/* Add more options as needed */}
-                        </Input>
-                      </FormGroup>
-                    </Col>
-                  </Row>
+        {selectedOptionPage && (
+          <>
+            <Col className="px-1" md="3">
+              <FormGroup>
+                <label>Page Name</label>
+                <Input type="text" />
+              </FormGroup>
+            </Col>
 
-                  <Row>
-                    {selectedOptionPage && (
-                      <>
-                           <Col className="px-1" md="3">
-            <FormGroup>
-              <label>Page Name</label>
-              <Input
-                type="text"
-              />
-            </FormGroup>
-          </Col>
+            <Col className="px-1" md="3">
+              <FormGroup>
+                <label>Path</label>
+                <Input type="text" />
+              </FormGroup>
+            </Col>
 
-          <Col className="px-1" md="3">
-            <FormGroup>
-              <label>Path</label>
-              <Input
-                type="text"
-              />
-            </FormGroup>
-          </Col>
+            <Col className="px-2 mt-3" md="3">
+              <FormGroup>
+                <Button
+                  className="btn-round"
+                  color="primary"
+                  type="button"
+                  onClick={UpdatePost}
+                >
+                  Update
+                </Button>
 
-                        <Col className="px-2 mt-3" md="3">
-                          <FormGroup>
-                            <Button
-                              className="btn-round"
-                              color="primary"
-                              type="button"
-                              onClick={UpdatePost}
-                            >
-                              Update
-                            </Button>
+                <Button
+                  className="btn-round  btn-danger"
+                  color="primary"
+                  type="button"
+                  onClick={DeletePost}
+                >
+                  Delete
+                </Button>
+              </FormGroup>
+            </Col>
+          </>
+        )}
+      </Row>
 
-                            <Button
-                              className="btn-round  btn-danger"
-                              color="primary"
-                              type="button"
-                              onClick={DeletePost}
-                            >
-                              Delete
-                            </Button>
-                          </FormGroup>
-                        </Col>
-                      </>
-                    )}
-                  </Row>
-
+      <Row className="mt-5">
+        <h2>Logo</h2>
+      </Row>
 
       <Row>
-                    <Col className="pl-1" md="4">
-                      <FormGroup>
-                        <label htmlFor="exampleInputEmail1">Logo </label>
-                        <input
-                          type="file"
-                          name="imageleft"
-                          onChange={handleLogoChange}
-                          accept="image/*" 
-                        />
-                      </FormGroup>
-                    </Col>
+        <Col className="pl-1" md="4">
+          <FormGroup>
+            <label htmlFor="exampleInputEmail1">Logo </label>
+            <input
+              type="file"
+              onChange={handleFileChange}
 
-                    <Col className="px-2 mt-3" md="3">
-                <FormGroup>
-                  <Button
-                    className="btn-round"
-                    color="primary"
-                    type="button"
-                    onClick={UpdatePost}
-                  >
-                    Update
-                  </Button>
-                </FormGroup>
-              </Col>
-              
-                  </Row>
-    
-                
-                
+              accept="image/*"
+            />
+          </FormGroup>
+        </Col>
+
+        <Col className="px-2 mt-3" md="3">
+          <FormGroup>
+            <Button
+              className="btn-round"
+              color="primary"
+              type="button"
+              onClick={UpdatePostLogo}
+            >
+              Update
+            </Button>
+            {feedback && <div>{feedback}</div>}
+          </FormGroup>
+        </Col>
+      </Row>
+
       <Row>
-      <Col className="px-1" md="3">
-            <FormGroup>
-              <label>Background Color " HEXA CODE" </label>
-              <Input
-                type="text"
-              />
-            </FormGroup>
-          </Col>
+        <Col className="px-1" md="3">
+          <FormGroup>
+            <label>Background Color " HEXA CODE" </label>
+            <Input type="text" />
+          </FormGroup>
+        </Col>
 
-                    <Col className="px-2 mt-3" md="3">
-                <FormGroup>
-                  <Button
-                    className="btn-round"
-                    color="primary"
-                    type="button"
-                    onClick={UpdatePost}
-                  >
-                    Update
-                  </Button>
-                </FormGroup>
-              </Col>
-              
-                  </Row>
-    
+        <Col className="px-2 mt-3" md="3">
+          <FormGroup>
+            <Button
+              className="btn-round"
+              color="primary"
+              type="button"
+              onClick={UpdatePost}
+            >
+              Update
+            </Button>
+          </FormGroup>
+        </Col>
+      </Row>
     </>
   );
 }

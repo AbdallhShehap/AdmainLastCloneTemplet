@@ -1,39 +1,50 @@
+import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import Cookies from "js-cookie";
+import axios from "axios";
+import { Navigate } from 'react-router-dom';
 
-import React from "react";
-import { Link, useLocation,useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Collapse,
   Navbar,
   NavbarToggler,
   NavbarBrand,
   Nav,
-  NavItem,
-  Dropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
   Container,
-  InputGroup,
-  InputGroupText,
-  InputGroupAddon,
-  Input,
+  Button,
 } from "reactstrap";
 
 import routes from "routes.js";
-import axios from "axios";
+
 function Header(props) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [color, setColor] = React.useState("transparent");
   const sidebarToggle = React.useRef();
   const location = useLocation();
-  const navigate=useNavigate()
-  const handleLogout = () => {
-    axios.get("http://localhost:8080/auth/logout");
-    document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
-    navigate('/');
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token'); // Get the user's token
+
+
+  
+  const handleLogout = () => {
+    // Remove the token and user role from local storage and cookies
+    localStorage.removeItem("userData");
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    Cookies.remove("token");
+  
+    // Redirect to the login page
+    navigate("/");
+    console.log("Logout clicked");
   };
+  
+
+  
+  
+  
   const toggle = () => {
     if (isOpen) {
       setColor("transparent");
@@ -79,6 +90,15 @@ function Header(props) {
       sidebarToggle.current.classList.toggle("toggled");
     }
   }, [location]);
+
+  // Check if the user is authenticated based on the token
+  const isAuthenticated = !!token;
+
+  // Handle the case when the user is not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
   return (
     // add or remove classes depending if we are on full-screen-maps page or not
     <Navbar
@@ -107,7 +127,7 @@ function Header(props) {
               <span className="navbar-toggler-bar bar3" />
             </button>
           </div>
-          <NavbarBrand href="/">{getBrand()}</NavbarBrand>
+          <NavbarBrand >{getBrand()}</NavbarBrand>
         </div>
         <NavbarToggler onClick={toggle}>
           <span className="navbar-toggler-bar navbar-kebab" />
@@ -115,50 +135,12 @@ function Header(props) {
           <span className="navbar-toggler-bar navbar-kebab" />
         </NavbarToggler>
         <Collapse isOpen={isOpen} navbar className="justify-content-end">
-          <form>
-            <InputGroup className="no-border">
-              <Input placeholder="Search..." />
-              <InputGroupAddon addonType="append">
-                <InputGroupText>
-                  <i className="nc-icon nc-zoom-split" />
-                </InputGroupText>
-              </InputGroupAddon>
-            </InputGroup>
-          </form>
+      
           <Nav navbar>
-            <NavItem>
-              <Link to="#pablo" className="nav-link btn-magnify">
-                <i className="nc-icon nc-layout-11" />
-                <p>
-                  <span className="d-lg-none d-md-block">Stats</span>
-                </p>
-              </Link>
-            </NavItem>
-            <Dropdown
-              nav
-              isOpen={dropdownOpen}
-              toggle={(e) => dropdownToggle(e)}
-            >
-              <DropdownToggle caret nav>
-                <i className="nc-icon nc-settings-gear-65" />
-                <p>
-                  <span className="d-lg-none d-md-block">Some Actions</span>
-                </p>
-              </DropdownToggle>
-              <DropdownMenu right>
-                <DropdownItem tag="a" onClick={handleLogout}>Logout</DropdownItem>
-                {/* <DropdownItem tag="a">Another Action</DropdownItem>
-                <DropdownItem tag="a">Something else here</DropdownItem> */}
-              </DropdownMenu>
-            </Dropdown>
-            {/* <NavItem>
-              <Link to="#pablo" className="nav-link btn-rotate">
-                <i className="nc-icon nc-settings-gear-65" />
-                <p>
-                  <span className="d-lg-none d-md-block">Account</span>
-                </p>
-              </Link>
-            </NavItem> */}
+          <Button color="primary" onClick={handleLogout}>
+  Logout
+</Button>
+
           </Nav>
         </Collapse>
       </Container>
